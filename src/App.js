@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import GridLayout from "./GridLayout";
+// import GridLayout from "./GridLayout";
+import ResizableHandles from "./GridLayoutResize";
 
 function App() {
   const [layout, setLayout] = useState([]);
@@ -50,7 +51,7 @@ function App() {
   };
 
   return (
-    <div className="container">
+    <div className="container-fluid">
       <div className="row">
         {mount.map((item, index) => {
           return (
@@ -79,7 +80,8 @@ function App() {
         Displayed as <code>[x, y, w, h]</code>:
         <div className="columns">{stringifyLayout()}</div>
       </div>
-      <GridLayout onLayoutChange={onLayoutChange} />
+      {/* <GridLayout onLayoutChange={onLayoutChange} /> */}
+      <ResizableHandles onLayoutChange={onLayoutChange} />
     </div>
   );
 }

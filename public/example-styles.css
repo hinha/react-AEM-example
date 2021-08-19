@@ -7,7 +7,7 @@ body {
     width: 100%;
   }
   .react-grid-layout {
-    background: #eee;
+    /* background: #eee; */
   }
   .layoutJSON {
     background: #ddd;
@@ -24,7 +24,6 @@ body {
     box-sizing: border-box;
   }
   .react-grid-item:not(.react-grid-placeholder) {
-    background: #ccc;
     border: 1px solid black;
   }
   .react-grid-item.resizing {
