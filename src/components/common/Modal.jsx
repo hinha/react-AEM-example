@@ -11,8 +11,8 @@ export const ModalContentResize = ({
   open = true,
   meta = defaultMeta,
 }) => {
-  const changeForm = (value, index) => {
-    handleBoxChange(value, index);
+  const changeForm = (value) => {
+    handleBoxChange(value);
   };
 
   return (

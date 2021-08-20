@@ -14,11 +14,18 @@ const ResizableHandles = (props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [modalOpen, setModal] = useState(false);
   const [getProperties, setProperties] = useState({});
-  const [layouts, setLayouts] = useState([]);
+  let [layouts, setLayouts] = useState([]);
+  const storageLayout = getFromLS() || [];
 
   useEffect(() => {
     setMounted(true);
-    setLayouts(LayoutData);
+    if (storageLayout.length === 0) {
+      saveToLS(LayoutData);
+      setLayouts(LayoutData);
+    } else {
+      setLayouts(storageLayout);
+    }
+
     return;
   }, [props]);
 
@@ -30,11 +37,13 @@ const ResizableHandles = (props) => {
     event.preventDefault();
     setModal("box-properties");
 
-    // if (filter.length >== 0) setStyleBox(filter[0])
     setProperties({
       arrange: event.currentTarget,
       style: layouts.filter((data) => data.i === index.toString()),
     });
+
+    // TODO: BUG, cannot synchron from state and localStorage
+    // saveToLS(layouts);
   };
 
   const handleBoxChange = (event) => {
@@ -48,6 +57,10 @@ const ResizableHandles = (props) => {
         current.content.header.subTitle.text = event.target.value;
         break;
     }
+
+    var foundIndex = layouts.findIndex((x) => x.i == current.i);
+    layouts[foundIndex] = current;
+    saveToLS(layouts);
   };
 
   const generateDOM = () => {
@@ -97,7 +110,17 @@ const ResizableHandles = (props) => {
   };
 
   const onLayoutChange = (layout) => {
-    props.onLayoutChange(layout);
+    // pindahkan data dummy/api ke setiap perubahan posisi layout
+    const tranform = _.map(_.zip(layout, layouts), function (item) {
+      const left = item[0];
+      const right = item[1];
+      if (left.i === right.i) {
+        left.content = right.content;
+        return left;
+      }
+    });
+    saveToLS(tranform);
+    props.onLayoutChange(tranform);
   };
 
   // const addLayout = (event) => {
@@ -199,3 +222,19 @@ const ResizableHandles = (props) => {
 };
 
 export default ResizableHandles;
+
+function getFromLS() {
+  let ls = [];
+  if (global.localStorage) {
+    try {
+      ls = JSON.parse(global.localStorage.getItem("layouts")) || [];
+    } catch (e) {
+      /*Ignore*/
+    }
+  }
+  return ls;
+}
+
+function saveToLS(value) {
+  global.localStorage.setItem("layouts", JSON.stringify(value));
+}

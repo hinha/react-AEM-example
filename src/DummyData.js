@@ -10,12 +10,12 @@ export const Component = [
 ];
 
 export const LayoutData = _.map(_.range(0, 5), function (item, i) {
-  var y = Math.ceil(Math.random() * 2) + 1;
+  // var y = Math.ceil(Math.random() * 2) + 1;
   return {
     minW: 2,
     minH: 2,
-    x: (_.random(0, 5) * 2) % 12,
-    y: Math.floor(i / 6) * y,
+    x: 0,
+    y: 2,
     w: 4,
     h: 2,
     i: i.toString(),
