@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import _ from "lodash";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import Modal from "react-bootstrap/Modal";
+import ReactECharts from "echarts-for-react";
 
 import ModalManager from "./components/common/ModalManager";
 import { LayoutData } from "./DummyData";
@@ -14,7 +15,7 @@ const ResizableHandles = (props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [modalOpen, setModal] = useState(false);
   const [getProperties, setProperties] = useState({});
-  let [layouts, setLayouts] = useState([]);
+  const [layouts, setLayouts] = useState([]);
   const storageLayout = getFromLS() || [];
 
   useEffect(() => {
@@ -33,43 +34,82 @@ const ResizableHandles = (props) => {
     setModal("");
   };
 
-  const openBox = (event, index) => {
+  const openBox = (event, index, modalName) => {
     event.preventDefault();
-    setModal("box-properties");
+    setModal(modalName);
 
-    setProperties({
-      arrange: event.currentTarget,
-      style: layouts.filter((data) => data.i === index.toString()),
-    });
+    // ignore undifined value
+    if (index)
+      setProperties({
+        arrange: event.currentTarget,
+        style: layouts.filter((data) => data.i === index.toString()),
+      });
 
     // TODO: BUG, cannot synchron from state and localStorage
     // saveToLS(layouts);
   };
 
-  const handleBoxChange = (event) => {
+  const handleBoxChange = (event, eventType) => {
     event.preventDefault();
-    let current = getProperties.style[0];
-    switch (event.target.name) {
-      case "boxTitle":
-        current.content.header.title.text = event.target.value;
-        break;
-      case "boxSubTitle":
-        current.content.header.subTitle.text = event.target.value;
-        break;
-    }
 
-    var foundIndex = layouts.findIndex((x) => x.i == current.i);
-    layouts[foundIndex] = current;
-    saveToLS(layouts);
+    if (eventType === "eventChange") {
+      let current = getProperties.style[0];
+      switch (event.target.name) {
+        case "boxTitle":
+          current.content.header.title.text = event.target.value;
+          break;
+        case "boxSubTitle":
+          current.content.header.subTitle.text = event.target.value;
+          break;
+      }
+
+      var foundIndex = layouts.findIndex((x) => x.i == current.i);
+      layouts[foundIndex] = current;
+      saveToLS(layouts);
+    }
+  };
+
+  const handleBoxCreate = (event, payload) => {
+    event.preventDefault();
+
+    const id = (layouts.length + 1).toString();
+    const data = {
+      minW: 3,
+      minH: 3,
+      x: 0,
+      y: 2,
+      w: 4,
+      h: 3,
+      i: id,
+      moved: false,
+      static: false,
+      content: { id: id, ...payload },
+    };
+    // LayoutData.push(data);
+    let newData = [...layouts, data];
+    setLayouts(newData);
+  };
+
+  const onRemoveItemLayout = (id) => {
+    setLayouts(_.reject(layouts, { i: id }));
   };
 
   const generateDOM = () => {
-    return _.map(layouts, function (l, i) {
+    return _.map(layouts, function (l) {
+      let raw;
+      switch (l.content.body.type) {
+        case "text":
+          raw = l.content.body.raw;
+          break;
+        case "chart":
+          raw = <ReactECharts option={l.content.body.raw} />;
+          break;
+      }
       return (
         <div
-          key={i}
+          key={l.i}
           className="card"
-          onClick={(e) => openBox(e, i)}
+          onClick={(e) => openBox(e, l.i, "box-properties")}
           data-modal="box-properties"
           data-grid={{
             w: l.w,
@@ -94,16 +134,7 @@ const ResizableHandles = (props) => {
             <p>{l.content.header.subTitle.text}</p>
           </div>
 
-          <div className="card-body">
-            <h5 className="card-title">Special title treatment</h5>
-            <p className="card-text">
-              With supporting text below as a natural lead-in to additional
-              content.
-            </p>
-            <a href="#" className="btn btn-primary">
-              Go somewhere
-            </a>
-          </div>
+          <div className="card-body">{raw}</div>
         </div>
       );
     });
@@ -111,41 +142,19 @@ const ResizableHandles = (props) => {
 
   const onLayoutChange = (layout) => {
     // pindahkan data dummy/api ke setiap perubahan posisi layout
-    const tranform = _.map(_.zip(layout, layouts), function (item) {
+    const state = _.map(_.zip(layout, layouts), function (item) {
       const left = item[0];
       const right = item[1];
       if (left.i === right.i) {
         left.content = right.content;
         return left;
+      } else {
+        left.content = right.content;
+        return left;
       }
     });
-    saveToLS(tranform);
-    props.onLayoutChange(tranform);
-  };
-
-  // const addLayout = (event) => {
-  //   event.preventDefault();
-
-  //   let counter = layouts.length;
-
-  //   let data = {
-  //     i: "n" + counter,
-  //     x: (layouts.length * 2) % (2 || 12),
-  //     y: Infinity, // puts it at the bottom
-  //     w: parseInt(event.target.width.value),
-  //     h: parseInt(event.target.height.value),
-  //     resizeHandles: _.shuffle(availableHandles).slice(
-  //       0,
-  //       _.random(1, availableHandles.length - 1)
-  //     ),
-  //   };
-  //   setLayouts([...layouts, data]);
-  //   console.log(data, layouts);
-  //   counter += 1;
-  // };
-
-  const showModal = () => {
-    setIsOpen(true);
+    saveToLS(state);
+    props.onLayoutChange(state);
   };
 
   const hideModal = () => {
@@ -154,18 +163,13 @@ const ResizableHandles = (props) => {
 
   return (
     <>
-      <div className="row">
-        <div className="col-md-12">
-          <button
-            onClick={showModal}
-            className="btn btn-primary ml-3"
-            data-bs-toggle="modal"
-            data-bs-target="#exampleModal"
-          >
-            Create New Layout
-          </button>
-        </div>
-      </div>
+      <button
+        className="btn btn-primary ml-3"
+        data-modal="modal-three"
+        onClick={(e) => openBox(e, undefined, "box-visualization")}
+      >
+        Create Visualization
+      </button>
       <div className="row">
         <div className="col-md-12">
           <ReactGridLayout
@@ -214,6 +218,8 @@ const ResizableHandles = (props) => {
       <ModalManager
         closeFn={closeModal}
         handleBoxChange={handleBoxChange}
+        handleBoxCreate={handleBoxCreate}
+        handleBoxRemove={onRemoveItemLayout}
         modal={modalOpen}
         properties={getProperties}
       />

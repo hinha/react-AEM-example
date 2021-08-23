@@ -9,8 +9,9 @@ export const Component = [
   },
 ];
 
-export const LayoutData = _.map(_.range(0, 5), function (item, i) {
+export const LayoutData = _.map(_.range(0, 3), function (item, i) {
   // var y = Math.ceil(Math.random() * 2) + 1;
+  i += 1;
   return {
     minW: 2,
     minH: 2,
@@ -33,7 +34,10 @@ export const LayoutData = _.map(_.range(0, 5), function (item, i) {
           size: "9px",
         },
       },
-      body: "",
+      body: {
+        type: "text",
+        raw: "With supporting text below as a natural lead-in to additional content.",
+      },
     },
   };
 });

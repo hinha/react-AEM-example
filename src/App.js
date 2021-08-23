@@ -36,47 +36,10 @@ function App() {
     });
   };
 
-  const clone = (obj) => {
-    if (null == obj || "object" != typeof obj) return obj;
-    var copy = obj.constructor();
-    for (var attr in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, attr))
-        copy[attr] = obj[attr];
-    }
-    return copy;
-  };
-
-  const clickCopy = () => {
-    setMount([...mount, clone(mount[0])]);
-  };
-
   return (
     <div className="container-fluid">
-      <div className="row">
-        {mount.map((item, index) => {
-          return (
-            <div key={index} className="col-2" id={("id", index)}>
-              {item}
-            </div>
-          );
-        })}
-        <div className="col-1">
-          <div className="card">
-            <p className="card-header text-center" onClick={clickCopy}>
-              +
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="row">
-        <div className="col-md-12 pt-1">
-          <div className="card">
-            <h5 className="card-header text-center">Add</h5>
-          </div>
-        </div>
-      </div>
-      <div className="col-12 layoutJSON">
+      <h1 className="text-center">DEMO</h1>
+      <div className="layoutJSON">
         Displayed as <code>[x, y, w, h]</code>:
         <div className="columns">{stringifyLayout()}</div>
       </div>
