@@ -1,4 +1,4 @@
-import { ModalContentResize } from "./Modal";
+import { ModalProperties, ModalVisually } from "./Modal";
 
 const initModalProperties = {
   arrange: {
@@ -20,7 +20,10 @@ const initModalProperties = {
           size: "0px",
         },
       },
-      body: "",
+      body: {
+        type: "html",
+        raw: null,
+      },
     },
     h: 0,
     i: "0",
@@ -35,6 +38,8 @@ const initModalProperties = {
 const ModalManager = ({
   closeFn = () => null,
   handleBoxChange = () => null,
+  handleBoxCreate = () => null,
+  handleBoxRemove = () => null,
   modal = "",
   properties = initModalProperties,
 }) => {
@@ -51,11 +56,17 @@ const ModalManager = ({
 
   return (
     <>
-      <ModalContentResize
+      <ModalProperties
         closeFn={closeFn}
         handleBoxChange={handleBoxChange}
+        handleBoxRemove={handleBoxRemove}
         open={modal === "box-properties"}
         meta={sendData}
+      />
+      <ModalVisually
+        closeFn={closeFn}
+        handleBoxCreate={handleBoxCreate}
+        open={modal === "box-visualization"}
       />
     </>
   );
