@@ -1,13 +1,7 @@
 import _ from "lodash";
+import { randid } from "./components/util/id";
 
-export const Component = [
-  {
-    id: "aaa",
-    items: {
-      title: "",
-    },
-  },
-];
+const initColor = "#69C0FF";
 
 export const LayoutData = _.map(_.range(0, 3), function (item, i) {
   // var y = Math.ceil(Math.random() * 2) + 1;
@@ -21,8 +15,12 @@ export const LayoutData = _.map(_.range(0, 3), function (item, i) {
     h: 2,
     i: i.toString(),
     content: {
-      id: i.toString(),
+      id: randid(10),
+      color: initColor,
+      category: "body",
+      class: "card",
       header: {
+        class: "",
         title: {
           text: "Title " + i,
           size: "17px",
@@ -33,6 +31,7 @@ export const LayoutData = _.map(_.range(0, 3), function (item, i) {
           text: "Sub Title " + i,
           size: "9px",
         },
+        textAlign: "left",
       },
       body: {
         type: "text",

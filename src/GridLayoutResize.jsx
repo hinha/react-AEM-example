@@ -16,8 +16,8 @@ const ResizableHandles = (props) => {
   const [modalOpen, setModal] = useState(false);
   const [getProperties, setProperties] = useState({});
   const [layouts, setLayouts] = useState([]);
+  const [colorScheme, setColorScheme] = useState("red");
   const storageLayout = getFromLS() || [];
-
   useEffect(() => {
     setMounted(true);
     if (storageLayout.length === 0) {
@@ -26,6 +26,8 @@ const ResizableHandles = (props) => {
     } else {
       setLayouts(storageLayout);
     }
+
+    setColorScheme("#69C0FF");
 
     return;
   }, [props]);
@@ -44,14 +46,9 @@ const ResizableHandles = (props) => {
         arrange: event.currentTarget,
         style: layouts.filter((data) => data.i === index.toString()),
       });
-
-    // TODO: BUG, cannot synchron from state and localStorage
-    // saveToLS(layouts);
   };
 
   const handleBoxChange = (event, eventType) => {
-    event.preventDefault();
-
     if (eventType === "eventChange") {
       let current = getProperties.style[0];
       switch (event.target.name) {
@@ -60,6 +57,9 @@ const ResizableHandles = (props) => {
           break;
         case "boxSubTitle":
           current.content.header.subTitle.text = event.target.value;
+          break;
+        case "textAlign":
+          current.content.header.textAlign = event.target.value;
           break;
       }
 
@@ -72,18 +72,20 @@ const ResizableHandles = (props) => {
   const handleBoxCreate = (event, payload) => {
     event.preventDefault();
 
+    // change color in chart
+    switch (payload.content.body.type) {
+      case ("text", "image"):
+        payload.content.color = colorScheme;
+        break;
+      case "chart":
+        payload.content.body.raw.color = colorScheme;
+        break;
+    }
+
     const id = (layouts.length + 1).toString();
     const data = {
-      minW: 3,
-      minH: 3,
-      x: 0,
-      y: 2,
-      w: 4,
-      h: 3,
       i: id,
-      moved: false,
-      static: false,
-      content: { id: id, ...payload },
+      ...payload,
     };
     // LayoutData.push(data);
     let newData = [...layouts, data];
@@ -98,45 +100,83 @@ const ResizableHandles = (props) => {
     return _.map(layouts, function (l) {
       let raw;
       switch (l.content.body.type) {
-        case "text":
+        case ("text", "image"):
           raw = l.content.body.raw;
           break;
         case "chart":
           raw = <ReactECharts option={l.content.body.raw} />;
           break;
       }
-      return (
-        <div
-          key={l.i}
-          className="card"
-          onClick={(e) => openBox(e, l.i, "box-properties")}
-          data-modal="box-properties"
-          data-grid={{
-            w: l.w,
-            h: l.h,
-            x: l.x,
-            y: l.y,
-            minW: l.minW,
-            minH: l.minH,
-          }}
-        >
-          {/* {l.content.header} */}
-          <div className="card-header">
+
+      if (l.content.category === "body") {
+        return (
+          <div
+            key={l.i}
+            className={l.content.class}
+            onClick={(e) => openBox(e, l.i, "box-properties")}
+            data-modal="box-properties"
+            data-grid={{
+              w: l.w,
+              h: l.h,
+              x: l.x,
+              y: l.y,
+              minW: l.minW,
+              minH: l.minH,
+            }}
+          >
+            {/* {l.content.header} */}
+            <div className="card-header">
+              <div
+                className={l.content.header.title.class}
+                style={{
+                  fontSize: l.content.header.title.size,
+                  fontWeight: l.content.header.title.weight,
+                }}
+              >
+                {l.content.header.title.text}
+              </div>
+              <p>{l.content.header.subTitle.text}</p>
+            </div>
+
+            <div className="card-body">{raw}</div>
+          </div>
+        );
+      } else {
+        return (
+          <div
+            key={l.i}
+            className={l.content.class}
+            onClick={(e) => openBox(e, l.i, "box-properties")}
+            data-modal="box-properties"
+            data-grid={{
+              w: l.w,
+              h: l.h,
+              x: l.x,
+              y: l.y,
+              minW: l.minW,
+              minH: l.minH,
+            }}
+          >
             <div
-              className={l.content.header.title.class}
+              className="card-header no-bgcolor"
+              style={{ padding: "1.35rem 1rem" }}
+            >
+              <img src={raw} className="rounded" alt="." />
+            </div>
+            <div
+              className="card-block pr-3 py-3"
               style={{
-                fontSize: l.content.header.title.size,
-                fontWeight: l.content.header.title.weight,
+                textAlign: l.content.header.textAlign,
               }}
             >
-              {l.content.header.title.text}
+              <h4 className="card-title" style={{ color: l.content.color }}>
+                {l.content.header.title.text}
+              </h4>
+              <p className="card-text">{l.content.header.subTitle.text}</p>
             </div>
-            <p>{l.content.header.subTitle.text}</p>
           </div>
-
-          <div className="card-body">{raw}</div>
-        </div>
-      );
+        );
+      }
     });
   };
 
@@ -160,9 +200,30 @@ const ResizableHandles = (props) => {
   const hideModal = () => {
     setIsOpen(false);
   };
+  const onChangeColorScheme = (event) => {
+    event.preventDefault();
+    layouts.forEach(function (item) {
+      item.content.color = event.target.value;
+      // change color in chart
+      if (item.content.body.type === "chart") {
+        item.content.body.raw.color = event.target.value;
+      }
+    });
+    onLayoutChange(layouts);
+  };
 
   return (
     <>
+      <div className="form-group">
+        <label>Color Scheme</label>
+        <input
+          type="text"
+          className="form-control"
+          name="color"
+          onChange={onChangeColorScheme}
+          defaultValue={colorScheme}
+        />
+      </div>
       <button
         className="btn btn-primary ml-3"
         data-modal="modal-three"
@@ -170,6 +231,14 @@ const ResizableHandles = (props) => {
       >
         Create Visualization
       </button>
+      <button
+        className="btn btn-primary ml-3"
+        data-modal="modal-three"
+        onClick={(e) => openBox(e, undefined, "box-title")}
+      >
+        Create Title
+      </button>
+
       <div className="row">
         <div className="col-md-12">
           <ReactGridLayout

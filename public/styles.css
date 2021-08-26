@@ -112,3 +112,7 @@
   bottom: 0;
   transform: rotate(45deg);
 }
+
+.no-bgcolor {
+  background-color: rgba(0,0,0,0) !important;
+}

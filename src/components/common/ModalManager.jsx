@@ -1,4 +1,4 @@
-import { ModalProperties, ModalVisually } from "./Modal";
+import { ModalProperties, ModalVisually, ModalTitle } from "./Modal";
 
 const initModalProperties = {
   arrange: {
@@ -19,6 +19,7 @@ const initModalProperties = {
           text: "",
           size: "0px",
         },
+        textAlign: "",
       },
       body: {
         type: "html",
@@ -44,7 +45,7 @@ const ModalManager = ({
   properties = initModalProperties,
 }) => {
   let sendData;
-  if (Object.keys(properties).length) {
+  if (Object.keys(properties).length > 0) {
     sendData = {
       width: properties.arrange.clientWidth,
       height: properties.arrange.clientHeight,
@@ -67,6 +68,11 @@ const ModalManager = ({
         closeFn={closeFn}
         handleBoxCreate={handleBoxCreate}
         open={modal === "box-visualization"}
+      />
+      <ModalTitle
+        closeFn={closeFn}
+        handleBoxCreate={handleBoxCreate}
+        open={modal === "box-title"}
       />
     </>
   );
