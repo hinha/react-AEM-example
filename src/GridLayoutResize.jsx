@@ -5,7 +5,7 @@ import Modal from "react-bootstrap/Modal";
 import ReactECharts from "echarts-for-react";
 
 import ModalManager from "./components/common/ModalManager";
-import { LayoutData } from "./DummyData";
+// import { LayoutData } from "./DummyData";
 
 const ReactGridLayout = WidthProvider(Responsive);
 
@@ -17,19 +17,13 @@ const ResizableHandles = (props) => {
   const [getProperties, setProperties] = useState({});
   const [layouts, setLayouts] = useState([]);
   const [colorScheme, setColorScheme] = useState("red");
-  const storageLayout = getFromLS() || [];
+
   useEffect(() => {
     setMounted(true);
-    if (storageLayout.length === 0) {
-      saveToLS(LayoutData);
-      setLayouts(LayoutData);
-    } else {
-      setLayouts(storageLayout);
-    }
-
+    setLayouts(props.layouts);
     setColorScheme("#69C0FF");
 
-    return;
+    return () => {};
   }, [props]);
 
   const closeModal = () => {
@@ -87,7 +81,9 @@ const ResizableHandles = (props) => {
       i: id,
       ...payload,
     };
-    // LayoutData.push(data);
+
+    // Send event
+
     let newData = [...layouts, data];
     setLayouts(newData);
   };
@@ -193,7 +189,6 @@ const ResizableHandles = (props) => {
         return left;
       }
     });
-    saveToLS(state);
     props.onLayoutChange(state);
   };
 
@@ -297,18 +292,6 @@ const ResizableHandles = (props) => {
 };
 
 export default ResizableHandles;
-
-function getFromLS() {
-  let ls = [];
-  if (global.localStorage) {
-    try {
-      ls = JSON.parse(global.localStorage.getItem("layouts")) || [];
-    } catch (e) {
-      /*Ignore*/
-    }
-  }
-  return ls;
-}
 
 function saveToLS(value) {
   global.localStorage.setItem("layouts", JSON.stringify(value));
